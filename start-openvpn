@@ -1,0 +1,67 @@
+#!/bin/bash
+
+server="$OPENVPN_DIR/server.conf"
+client="$OPENVPN_DIR/client.ovpn"
+key="$OPENVPN_DIR/static.key"
+ovpn_server="192.168.255.233/30"
+ovpn_natdevice='eth0'
+
+openvpn --genkey --secret "$key"
+
+iptables -t nat -C POSTROUTING -s $ovpn_server -o $ovpn_natdevice -j MASQUERADE || {
+  iptables -t nat -A POSTROUTING -s $ovpn_server -o $ovpn_natdevice -j MASQUERADE
+}
+
+mkdir -p /dev/net
+if [ ! -c /dev/net/tun ]; then
+    mknod /dev/net/tun c 10 200
+fi
+
+parsed_routes=''
+if [ -n "$OPENVPN_ROUTES" ]; then
+    savedIFS=$IFS
+    IFS=','
+    for sv in $OPENVPN_ROUTES; do
+        parsed_routes+="route ${sv} 255.255.255.255\n"
+    done
+    IFS=$savedIFS
+
+    # Interpret '\n' into newlines
+    parsed_routes="$(echo -e "$parsed_routes")"
+fi
+
+cat > "$server" <<EOF
+ifconfig 192.168.255.234 192.168.255.235
+
+keepalive 10 60
+ping-timer-rem
+persist-key
+persist-tun
+
+proto tcp-server
+dev tun0
+
+secret $key
+port 1194
+verb 3
+user nobody
+group nogroup
+EOF
+
+cat > "$client" <<EOF
+ifconfig 192.168.255.235 192.168.255.234
+
+keepalive 10 60
+ping-timer-rem
+persist-key
+persist-tun
+
+proto tcp-client
+dev tun0
+
+remote 127.0.0.1
+
+$parsed_routes
+EOF
+
+openvpn --config "$server"
