@@ -17,18 +17,30 @@ if [ ! -c /dev/net/tun ]; then
     mknod /dev/net/tun c 10 200
 fi
 
-parsed_routes=''
-if [ -n "$OPENVPN_ROUTES" ]; then
-    savedIFS=$IFS
-    IFS=','
-    for sv in $OPENVPN_ROUTES; do
-        parsed_routes+="route ${sv} 255.255.255.255\n"
-    done
-    IFS=$savedIFS
+### Parse DNS
+parsed_dns=''
+savedIFS=$IFS
+IFS=','
+for sv in $OPENVPN_DNS; do
+    parsed_dns+="dhcp-option DNS ${sv}\n"
+done
+IFS=$savedIFS
+# Interpret '\n' into newlines
+parsed_dns="$(echo -e "$parsed_dns")"
 
-    # Interpret '\n' into newlines
-    parsed_routes="$(echo -e "$parsed_routes")"
-fi
+### Parse Routes
+parsed_routes=''
+savedIFS=$IFS
+IFS=','
+for sv in $OPENVPN_ROUTES; do
+    parsed_routes+="route ${sv} 255.255.255.255\n"
+done
+for sv in $OPENVPN_DNS; do
+    parsed_routes+="route ${sv} 255.255.255.255\n"
+done
+IFS=$savedIFS
+# Interpret '\n' into newlines
+parsed_routes="$(echo -e "$parsed_routes")"
 
 cat > "$server" <<EOF
 ifconfig 192.168.255.234 192.168.255.235
@@ -62,6 +74,7 @@ dev tun0
 remote 127.0.0.1
 
 $parsed_routes
+$parsed_dns
 EOF
 
 openvpn --config "$server"

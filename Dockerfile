@@ -6,8 +6,9 @@ RUN echo "http://dl-4.alpinelinux.org/alpine/edge/community/" >> /etc/apk/reposi
     ln -s /usr/share/easy-rsa/easyrsa /usr/local/bin && \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/*
 
-### YOU MUST SET:
+### THE USER SETS:
 # OPENVPN_ROUTES - Syntax is "ip_1,ip_2,...,ip_n"
+# OPENVPN_DNS    - Syntax is "ip_1,ip_2,...,ip_n"
 
 ENV OPENVPN_DIR /etc/openvpn
 
