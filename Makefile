@@ -1,6 +1,5 @@
-REPO = nlsun
 DOCKER = docker
-OPENVPN = openvpn
+OPENVPN = dcos-cli-vpn
 
 all: build push
 
