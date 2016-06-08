@@ -45,10 +45,8 @@ parsed_routes="$(echo -e "$parsed_routes")"
 cat > "$server" <<EOF
 ifconfig 192.168.255.234 192.168.255.235
 
-keepalive 10 60
-ping-timer-rem
-persist-key
-persist-tun
+ping 10
+ping-exit 300
 
 proto tcp-server
 dev tun0
@@ -63,10 +61,8 @@ EOF
 cat > "$client" <<EOF
 ifconfig 192.168.255.235 192.168.255.234
 
-keepalive 10 60
-ping-timer-rem
-persist-key
-persist-tun
+ping 10
+ping-exit 300
 
 proto tcp-client
 dev tun0
