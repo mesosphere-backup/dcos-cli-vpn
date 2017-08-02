@@ -33,10 +33,7 @@ parsed_routes=''
 savedIFS=$IFS
 IFS=','
 for sv in $OPENVPN_ROUTES; do
-    parsed_routes+="route ${sv} 255.255.255.255\n"
-done
-for sv in $OPENVPN_DNS; do
-    parsed_routes+="route ${sv} 255.255.255.255\n"
+    parsed_routes+="route ${sv}\n"
 done
 IFS=$savedIFS
 # Interpret '\n' into newlines
